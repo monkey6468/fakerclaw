@@ -35,7 +35,8 @@ async function checkin() {
     
     // 发送 Telegram 通知（如果配置了）
     if (process.env.TG_TOKEN && process.env.TG_ID) {
-      await sendTelegramNotification(result);
+      const msg = `✅ 签到成功: ${JSON.stringify(result)}`;
+      await sendMessage(msg);
     }
     
   } catch (error) {
@@ -43,32 +44,42 @@ async function checkin() {
     
     // 发送错误通知
     if (process.env.TG_TOKEN && process.env.TG_ID) {
-      await sendTelegramNotification({ error: error.message });
+      const msg = `🚫 签到失败: ${error.message}`;
+      await sendMessage(msg);
     }
   }
 }
 
-async function sendTelegramNotification(data) {
+async function sendMessage(msg) {
+  const botToken = process.env.TG_TOKEN;
+  const chatId = process.env.TG_ID;
+  
+  if (!botToken || !chatId) {
+    console.log("Telegram 推送未启用. 消息内容:", msg);
+    return;
+  }
+
+  const now = new Date();
+  const formattedTime = new Date(now.getTime() + 8 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+  
+  const message = `执行时间: ${formattedTime}\n${msg}`;
+  const tgUrl = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&parse_mode=HTML&text=${encodeURIComponent(message)}`;
+
   try {
-    const message = data.error 
-      ? `🚫 签到失败: ${data.error}` 
-      : `✅ 签到成功: ${JSON.stringify(data)}`;
+    const response = await fetch(tgUrl, { method: "GET", headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" } });
     
-    await fetch(`https://api.telegram.org/bot${process.env.TG_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        chat_id: process.env.TG_ID,
-        text: message,
-        parse_mode: 'Markdown'
-      })
-    });
-    
-    console.log('Telegram 通知已发送');
+    if (!response.ok) {
+         return "Telegram 消息发送失败: "  + await response.text();
+    }
+    const jsonResponse = await response.text();
+    console.log("Telegram 消息发送成功:", jsonResponse);
+    return message;
   } catch (error) {
-    console.error('发送 Telegram 通知失败:', error);
+    console.error("发送 Telegram 消息失败:", error);
+    return `发送 Telegram 消息失败: ${error.message}`;
   }
 }
 
