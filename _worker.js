@@ -5,8 +5,8 @@ async function checkin() {
     console.log('开始执行签到任务...');
     
     const domain = process.env.DOMAIN || 'https://api.fakerclaw.online';
-    const cookie = process.env.COOKIE || 'session=MTc3NTc4NzMwNXxEWDhFQVFMX2dBQUJFQUVRQUFEXzNfLUFBQWNHYzNSeWFXNW5EQVFBQW1sa0EybHVkQVFFQVA0U25BWnpkSEpwYm1jTUNnQUlkWE5sY201aGJXVUdjM1J5YVc1bkRBd0FDbTF2Ym10bGVUWTBOamdHYzNSeWFXNW5EQVlBQkhKdmJHVURhVzUwQkFJQUFnWnpkSEpwYm1jTUNBQUdjM1JoZEhWekEybHVkQVFDQUFJR2MzUnlhVzVuREFjQUJXZHliM1Z3Qm5OMGNtbHVad3dKQUFka1pXWmhkV3gwQm5OMGNtbHVad3dGQUFOaFptWUdjM1J5YVc1bkRBWUFCRkYwZG04R2MzUnlhVzVuREEwQUMyOWhkWFJvWDNOMFlYUmxCbk4wY21sdVp3d09BQXgyVTNKbVRGQnpkVk5xVDNVPXyu4m33vNMiO0oA1kf2u6gMIixRGdCGaX0zjccqvR6YGQ==';
-    const newApiUser = process.env.NEW_API_USER || '2382';
+    const cookie = process.env.COOKIE;
+    const newApiUser = process.env.NEW_API_USER;
     
     const response = await fetch(`${domain}/api/user/checkin`, {
       method: 'POST',
