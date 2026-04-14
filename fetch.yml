@@ -1,0 +1,53 @@
+name: check-in-job
+
+on:
+  workflow_dispatch:  # 允许手动触发
+  schedule:
+      # 表达式生成  https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+    - cron: '0 0,6,12,18,22 * * *'  # 每天 00:00 UTC 执行，调整为你需要的时间
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'  # 可以根据实际需要修改 Node.js 版本
+
+    - name: Install dependencies
+      run: |
+        npm install
+        npm install node-fetch
+
+    - name: Run scheduled check-in
+      run: |
+        node _worker.js  
+      env:
+        DOMAIN: ${{ secrets.DOMAIN }}  # 从 GitHub Secrets 中读取配置信息
+        COOKIE: ${{ secrets.COOKIE }}
+        NEW_API_USER: ${{ secrets.NEW_API_USER }}
+        TG_TOKEN: ${{ secrets.TG_TOKEN }}
+        TG_ID: ${{ secrets.TG_ID }}
+    
+    # 👇 保活任务（关键）
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取完整的 git 历史
+        persist-credentials: true  # 保持凭证
+
+    - name: Keep repo alive
+      run: |
+        git config --local user.name "actions@github.com"
+        git config --local user.email "GitHub Actions"
+        git add .
+        git commit --allow-empty -m "$(date '+%Y-%m-%d %H:%M:%S')更新"
+
+    - name: 推送远程
+      run:
+        git push
