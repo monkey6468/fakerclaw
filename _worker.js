@@ -34,11 +34,13 @@ async function getBalance(domain, cookie, newApiUser) {
     const result = await response.json();
     console.log('余额查询结果:', result);
 
-    if (result.data && result.data.total_quota !== undefined) {
-      const totalQuota = result.data.total_quota;
+    const totalQuota = result.data?.stats?.total_quota;
+    if (totalQuota !== undefined) {
       const balance = (totalQuota / 500000 + 10).toFixed(2);
+      console.log(`计算余额: totalQuota=${totalQuota}, balance=$${balance}`);
       return { totalQuota, balance };
     }
+    console.log('未找到余额字段');
     return null;
   } catch (error) {
     console.error('获取余额失败:', error);
